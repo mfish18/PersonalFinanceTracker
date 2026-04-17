@@ -46,7 +46,7 @@ Coming soon.
 ## Project Structure
 
 ```
-fintrack/
+personalfinancetracker/
 ├── frontend/        # Vue 3 app
 ├── backend/         # Go REST API
 ├── db/              # Database migrations
