@@ -33,7 +33,7 @@ func Register(c *gin.Context) {
 
 	var existing models.User
 	if result := config.DB.Where("email = ?", input.Email).First(&existing); result.Error == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
+		c.JSON(http.StatusConflict, gin.H{"error": "Email already in use"})
 		return
 	}
 

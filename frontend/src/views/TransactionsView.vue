@@ -20,8 +20,8 @@ const empty: Omit<Transaction, 'id'> = {
   amount: 0,
   category: '',
   description: '',
-  date: new Date().toISOString().split('T')[0],
-  type: 'expense',
+  date: new Date().toISOString().split('T')[0] as string,
+  type: 'expense' as 'income' | 'expense',
 }
 
 const form = ref<Omit<Transaction, 'id'>>({ ...empty })

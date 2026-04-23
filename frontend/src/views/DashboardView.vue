@@ -78,8 +78,8 @@ const monthlyData = computed(() => {
       return new Date(Number(year), Number(month) - 1).toLocaleString('default', { month: 'short', year: '2-digit' })
     }),
     datasets: [
-      { label: 'Income', data: sorted.map(m => map[m].income), backgroundColor: '#16a34a' },
-      { label: 'Expenses', data: sorted.map(m => map[m].expense), backgroundColor: '#dc2626' },
+      { label: 'Income', data: sorted.map(m => map[m]?.income ?? 0), backgroundColor: '#16a34a' },
+      { label: 'Expenses', data: sorted.map(m => map[m]?.expense ?? 0), backgroundColor: '#dc2626' },
     ],
   }
 })
