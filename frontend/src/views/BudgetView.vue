@@ -3,22 +3,31 @@ import { ref, computed } from 'vue'
 import { useBudgetStore } from '@/stores/budget'
 import { useCategoryStore } from '@/stores/categories'
 import type { Budget } from '@/types/index'
+import { onMounted } from 'vue'
+import { useTransactionStore } from '@/stores/transactions'
 
+const transactionStore = useTransactionStore()
 const budgetStore = useBudgetStore()
 const categoryStore = useCategoryStore()
 
-const selectedMonth = ref('2024-04')
+const selectedMonth = ref('2026-04')
 
 const editingBudget = ref<Budget | null>(null)
 const showForm = ref(false)
 
 const empty: Omit<Budget, 'id'> = {
-  categoryId: '',
+  category_id: 0,
   amount: 0,
   month: selectedMonth.value,
 }
 
 const form = ref<Omit<Budget, 'id'>>({ ...empty })
+
+onMounted(async () => {
+  await categoryStore.fetchCategories()
+  await transactionStore.fetchTransactions()
+  await budgetStore.fetchBudgets(selectedMonth.value)
+})
 
 function openAdd() {
   editingBudget.value = null
@@ -28,7 +37,7 @@ function openAdd() {
 
 function openEdit(b: Budget) {
   editingBudget.value = b
-  form.value = { categoryId: b.categoryId, amount: b.amount, month: b.month }
+  form.value = { category_id: b.category_id, amount: b.amount, month: b.month }
   showForm.value = true
 }
 
@@ -38,7 +47,7 @@ function closeForm() {
 }
 
 function submit() {
-  if (!form.value.categoryId || !form.value.amount) return
+  if (!form.value.category_id|| !form.value.amount) return
   if (editingBudget.value) {
     budgetStore.updateBudget({ ...form.value, id: editingBudget.value.id })
   } else {
@@ -47,11 +56,10 @@ function submit() {
   closeForm()
 }
 
-// ── Computed budget rows ──────────────────────────────
 const budgetRows = computed(() => {
   return budgetStore.getBudgetsForMonth(selectedMonth.value).map(b => {
-    const category = categoryStore.categories.find(c => c.id === b.categoryId)
-    const spent = budgetStore.getSpentForCategory(b.categoryId, selectedMonth.value)
+    const category = categoryStore.categories.find(c => c.id === b.category_id)
+    const spent = budgetStore.getSpentForCategory(b.category_id, selectedMonth.value)
     const percentage = Math.min(Math.round((spent / b.amount) * 100), 100)
     const remaining = b.amount - spent
     const overBudget = spent > b.amount
@@ -71,7 +79,6 @@ const overallPercentage = computed(() => {
   return Math.min(Math.round((totalSpent.value / totalBudgeted.value) * 100), 100)
 })
 
-// ── Helpers ───────────────────────────────────────────
 function formatAmount(n: number) {
   return `$${n.toFixed(2)}`
 }
@@ -90,7 +97,7 @@ const expenseCategories = computed(() =>
 <template>
   <div class="budget">
 
-    <!-- Header -->
+    
     <div class="section-header">
       <div class="header-left">
         <h2>Budget</h2>
@@ -99,7 +106,7 @@ const expenseCategories = computed(() =>
       <button class="btn btn-primary" @click="openAdd">+ New budget</button>
     </div>
 
-    <!-- Overall summary -->
+    
     <div class="summary-row">
       <div class="summary-card">
         <span class="summary-label">Total budgeted</span>
@@ -123,7 +130,7 @@ const expenseCategories = computed(() =>
       </div>
     </div>
 
-    <!-- Overall progress bar -->
+    
     <div class="card overall-progress">
       <div class="progress-header">
         <span class="text-sm">Overall budget usage</span>
@@ -140,7 +147,7 @@ const expenseCategories = computed(() =>
       </div>
     </div>
 
-    <!-- Budget rows -->
+    
     <div v-if="budgetRows.length" class="card">
       <div v-for="row in budgetRows" :key="row.id" class="budget-row">
         <div class="budget-row-top">
@@ -185,14 +192,14 @@ const expenseCategories = computed(() =>
       <p class="text-muted">No budgets set for this month. Add one to get started.</p>
     </div>
 
-    <!-- Modal -->
+    
     <div v-if="showForm" class="overlay" @click.self="closeForm">
       <div class="modal card">
         <h3>{{ editingBudget ? 'Edit budget' : 'New budget' }}</h3>
 
         <div class="form-group">
           <label>Category</label>
-          <select v-model="form.categoryId">
+          <select v-model="form.category_id">
             <option value="" disabled>Select a category</option>
             <option v-for="c in expenseCategories" :key="c.id" :value="c.id">
               {{ c.name }}

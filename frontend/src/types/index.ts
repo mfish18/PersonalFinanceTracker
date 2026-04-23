@@ -1,5 +1,5 @@
 export interface Transaction {
-  id: string
+  id: number
   amount: number
   category: string
   description: string
@@ -8,15 +8,15 @@ export interface Transaction {
 }
 
 export interface Category {
-  id: string
+  id: number
   name: string
   color: string
   type: 'income' | 'expense' | 'both'
 }
 
 export interface Budget {
-  id: string
-  categoryId: string
+  id: number
+  category_id: number
   amount: number
   month: string
 }

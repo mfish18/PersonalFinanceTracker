@@ -1,15 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import api from '@/api/index'
 import type { Transaction } from '@/types/index'
 
 export const useTransactionStore = defineStore('transactions', () => {
-  const transactions = ref<Transaction[]>([
-    { id: '1', amount: 3200, category: 'Salary', description: 'Monthly salary', date: '2024-04-01', type: 'income' },
-    { id: '2', amount: 120, category: 'Groceries', description: 'Weekly shop', date: '2024-04-03', type: 'expense' },
-    { id: '3', amount: 55, category: 'Transport', description: 'Monthly transit pass', date: '2024-04-04', type: 'expense' },
-    { id: '4', amount: 800, category: 'Rent', description: 'April rent', date: '2024-04-05', type: 'expense' },
-    { id: '5', amount: 500, category: 'Freelance', description: 'Design project', date: '2024-04-06', type: 'income' },
-  ])
+  const transactions = ref<Transaction[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
   const totalIncome = computed(() =>
     transactions.value
@@ -25,18 +22,34 @@ export const useTransactionStore = defineStore('transactions', () => {
 
   const balance = computed(() => totalIncome.value - totalExpenses.value)
 
-  function addTransaction(t: Omit<Transaction, 'id'>) {
-    transactions.value.unshift({ ...t, id: crypto.randomUUID() })
+  async function fetchTransactions() {
+    loading.value = true
+    error.value = null
+    try {
+      const { data } = await api.get<Transaction[]>('/transactions')
+      transactions.value = data
+    } catch (e: any) {
+      error.value = e.response?.data?.error ?? 'Failed to fetch transactions'
+    } finally {
+      loading.value = false
+    }
   }
 
-  function updateTransaction(updated: Transaction) {
+  async function addTransaction(t: Omit<Transaction, 'id'>) {
+    const { data } = await api.post<Transaction>('/transactions', t)
+    transactions.value.unshift(data)
+  }
+
+  async function updateTransaction(updated: Transaction) {
+    const { data } = await api.put<Transaction>(`/transactions/${updated.id}`, updated)
     const index = transactions.value.findIndex(t => t.id === updated.id)
-    if (index !== -1) transactions.value[index] = updated
+    if (index !== -1) transactions.value[index] = data
   }
 
-  function deleteTransaction(id: string) {
+  async function deleteTransaction(id: number) {
+    await api.delete(`/transactions/${id}`)
     transactions.value = transactions.value.filter(t => t.id !== id)
   }
 
-  return { transactions, totalIncome, totalExpenses, balance, addTransaction, updateTransaction, deleteTransaction }
+  return { transactions, loading, error, totalIncome, totalExpenses, balance, fetchTransactions, addTransaction, updateTransaction, deleteTransaction }
 })

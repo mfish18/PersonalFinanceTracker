@@ -2,8 +2,14 @@
 import { ref } from 'vue'
 import { useCategoryStore } from '@/stores/categories'
 import type { Category } from '@/types/index'
+import { onMounted } from 'vue'
+
 
 const store = useCategoryStore()
+
+onMounted(() => {
+  store.fetchCategories()
+})
 
 const showForm = ref(false)
 const editingCategory = ref<Category | null>(null)
@@ -52,7 +58,7 @@ function submit() {
       <button class="btn btn-primary" @click="openAdd">+ New category</button>
     </div>
 
-    <!-- Income -->
+    
     <div>
       <h4 class="group-label">Income</h4>
       <div class="card">
@@ -74,7 +80,7 @@ function submit() {
       </div>
     </div>
 
-    <!-- Expense -->
+    
     <div>
       <h4 class="group-label">Expenses</h4>
       <div class="card">
@@ -96,7 +102,7 @@ function submit() {
       </div>
     </div>
 
-    <!-- Modal -->
+    
     <div v-if="showForm" class="overlay" @click.self="closeForm">
       <div class="modal card">
         <h3>{{ editingCategory ? 'Edit category' : 'New category' }}</h3>

@@ -1,29 +1,35 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import api from '@/api/index'
 import type { Category } from '@/types/index'
 
 export const useCategoryStore = defineStore('categories', () => {
-  const categories = ref<Category[]>([
-    { id: '1', name: 'Salary',     color: '#16a34a', type: 'income' },
-    { id: '2', name: 'Freelance',  color: '#2563eb', type: 'income' },
-    { id: '3', name: 'Groceries',  color: '#d97706', type: 'expense' },
-    { id: '4', name: 'Rent',       color: '#dc2626', type: 'expense' },
-    { id: '5', name: 'Transport',  color: '#7c3aed', type: 'expense' },
-    { id: '6', name: 'Utilities',  color: '#0891b2', type: 'expense' },
-    { id: '7', name: 'Dining',     color: '#db2777', type: 'expense' },
-    { id: '8', name: 'Other',      color: '#6b7280', type: 'both' },
-  ])
+  const categories = ref<Category[]>([])
+  const loading = ref(false)
 
-  function addCategory(c: Omit<Category, 'id'>) {
-    categories.value.push({ ...c, id: crypto.randomUUID() })
+  async function fetchCategories() {
+    loading.value = true
+    try {
+      const { data } = await api.get<Category[]>('/categories')
+      categories.value = data
+    } finally {
+      loading.value = false
+    }
   }
 
-  function updateCategory(updated: Category) {
+  async function addCategory(c: Omit<Category, 'id'>) {
+    const { data } = await api.post<Category>('/categories', c)
+    categories.value.push(data)
+  }
+
+  async function updateCategory(updated: Category) {
+    const { data } = await api.put<Category>(`/categories/${updated.id}`, updated)
     const index = categories.value.findIndex(c => c.id === updated.id)
-    if (index !== -1) categories.value[index] = updated
+    if (index !== -1) categories.value[index] = data
   }
 
-  function deleteCategory(id: string) {
+  async function deleteCategory(id: number) {
+    await api.delete(`/categories/${id}`)
     categories.value = categories.value.filter(c => c.id !== id)
   }
 
@@ -31,5 +37,5 @@ export const useCategoryStore = defineStore('categories', () => {
     return categories.value.filter(c => c.type === type || c.type === 'both')
   }
 
-  return { categories, addCategory, updateCategory, deleteCategory, getCategoriesForType }
+  return { categories, loading, fetchCategories, addCategory, updateCategory, deleteCategory, getCategoriesForType }
 })

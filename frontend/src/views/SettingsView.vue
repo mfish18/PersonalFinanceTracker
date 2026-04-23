@@ -46,7 +46,7 @@ const sections = [
 
     <div class="settings-layout">
 
-      <!-- Sidebar nav -->
+      
       <aside class="settings-nav card">
         <button
           v-for="s in sections"
@@ -58,10 +58,10 @@ const sections = [
         </button>
       </aside>
 
-      <!-- Content -->
+      
       <div class="settings-content">
 
-        <!-- Profile -->
+        
         <div v-if="activeSection === 'profile'" class="section card">
           <div class="section-title">
             <h3>Profile</h3>
@@ -90,7 +90,7 @@ const sections = [
           </div>
         </div>
 
-        <!-- Preferences -->
+        
         <div v-if="activeSection === 'preferences'" class="section card">
           <div class="section-title">
             <h3>Preferences</h3>
@@ -136,7 +136,7 @@ const sections = [
           </div>
         </div>
 
-        <!-- Notifications -->
+        
         <div v-if="activeSection === 'notifications'" class="section card">
           <div class="section-title">
             <h3>Notifications</h3>
@@ -185,7 +185,7 @@ const sections = [
           </div>
         </div>
 
-        <!-- Danger zone -->
+        
         <div v-if="activeSection === 'danger'" class="section card danger-card">
           <div class="section-title">
             <h3 class="text-expense">Danger zone</h3>
@@ -217,7 +217,7 @@ const sections = [
           </div>
         </div>
 
-        <!-- Save bar -->
+        
         <div v-if="activeSection !== 'danger'" class="save-bar">
           <transition name="fade">
             <span v-if="saved" class="saved-msg text-income text-sm">Changes saved.</span>

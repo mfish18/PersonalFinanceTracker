@@ -14,13 +14,19 @@ import {
 import { useTransactionStore } from '@/stores/transactions'
 import { useCategoryStore } from '@/stores/categories'
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns'
+import { onMounted } from 'vue'
+
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend)
+
+onMounted(() => {
+  store.fetchTransactions()
+  categoryStore.fetchCategories()
+})
 
 const store = useTransactionStore()
 const categoryStore = useCategoryStore()
 
-// ── Filters ───────────────────────────────────────────
 const selectedMonth = ref(format(new Date(), 'yyyy-MM'))
 const selectedType = ref<'all' | 'income' | 'expense'>('all')
 
@@ -34,7 +40,6 @@ const filteredTransactions = computed(() => {
   })
 })
 
-// ── Summary for selected month ────────────────────────
 const monthIncome = computed(() =>
   filteredTransactions.value
     .filter(t => t.type === 'income')
@@ -51,7 +56,6 @@ const savingsRate = computed(() => {
   return Math.round((monthBalance.value / monthIncome.value) * 100)
 })
 
-// ── Bar: category breakdown ───────────────────────────
 const categoryBreakdown = computed(() => {
   const map: Record<string, number> = {}
   filteredTransactions.value
@@ -72,7 +76,6 @@ const categoryBreakdown = computed(() => {
   }
 })
 
-// ── Line: daily spending trend ────────────────────────
 const dailyTrend = computed(() => {
   const map: Record<string, number> = {}
   filteredTransactions.value
@@ -84,7 +87,7 @@ const dailyTrend = computed(() => {
     labels: sorted.map(d => format(parseISO(d), 'MMM d')),
     datasets: [{
       label: 'Daily spending',
-      data: sorted.map(d => map[d]),
+      data: sorted.map(d => map[d] ?? 0),
       borderColor: '#2563eb',
       backgroundColor: 'rgba(37,99,235,0.08)',
       tension: 0.3,
@@ -94,7 +97,6 @@ const dailyTrend = computed(() => {
   }
 })
 
-// ── Shared chart options ──────────────────────────────
 const barOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -115,7 +117,6 @@ const lineOptions = {
   },
 }
 
-// ── CSV Export ────────────────────────────────────────
 function exportCSV() {
   const headers = ['Date', 'Description', 'Category', 'Type', 'Amount']
   const rows = filteredTransactions.value.map(t => [
@@ -139,7 +140,7 @@ function formatAmount(n: number) {
 <template>
   <div class="reports">
 
-    <!-- Filters -->
+    
     <div class="filters card">
       <div class="filter-group">
         <label>Month</label>
@@ -156,7 +157,7 @@ function formatAmount(n: number) {
       <button class="btn btn-primary export-btn" @click="exportCSV">Export CSV</button>
     </div>
 
-    <!-- Month summary -->
+    
     <div class="summary-row">
       <div class="summary-card">
         <span class="summary-label">Income</span>
@@ -180,7 +181,7 @@ function formatAmount(n: number) {
       </div>
     </div>
 
-    <!-- Charts -->
+    
     <div class="charts-row">
       <div class="card chart-card">
         <h4 class="chart-title">Spending by category</h4>
@@ -198,7 +199,7 @@ function formatAmount(n: number) {
       </div>
     </div>
 
-    <!-- Transaction breakdown table -->
+    
     <div class="card">
       <h4 style="margin-bottom: var(--space-4);">Transaction breakdown</h4>
       <div v-if="filteredTransactions.length">

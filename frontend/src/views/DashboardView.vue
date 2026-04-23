@@ -12,20 +12,25 @@ import {
 } from 'chart.js'
 import { useTransactionStore } from '@/stores/transactions'
 import { useCategoryStore } from '@/stores/categories'
+import { onMounted } from 'vue'
+
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
 const store = useTransactionStore()
 const categoryStore = useCategoryStore()
 
-// ── Summary ───────────────────────────────────────────
+onMounted(() => {
+  store.fetchTransactions()
+  categoryStore.fetchCategories()
+})
+
 const recentTransactions = computed(() =>
   [...store.transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5)
 )
 
-// ── Doughnut: spending by category ───────────────────
 const expensesByCategory = computed(() => {
   const map: Record<string, number> = {}
   store.transactions
@@ -57,7 +62,6 @@ const doughnutOptions = {
   },
 }
 
-// ── Bar: income vs expenses by month ─────────────────
 const monthlyData = computed(() => {
   const map: Record<string, { income: number; expense: number }> = {}
 
@@ -90,7 +94,6 @@ const barOptions = {
   },
 }
 
-// ── Helpers ───────────────────────────────────────────
 function formatAmount(amount: number, type: string) {
   const sign = type === 'income' ? '+' : '-'
   return `${sign}$${amount.toFixed(2)}`
@@ -104,7 +107,7 @@ function formatDate(date: string) {
 <template>
   <div class="dashboard">
 
-    <!-- Summary cards -->
+    
     <div class="summary-row">
       <div class="summary-card">
         <span class="summary-label">Balance</span>
@@ -124,7 +127,7 @@ function formatDate(date: string) {
       </div>
     </div>
 
-    <!-- Charts row -->
+    
     <div class="charts-row">
       <div class="card chart-card">
         <h4 class="chart-title">Spending by category</h4>
@@ -140,7 +143,7 @@ function formatDate(date: string) {
       </div>
     </div>
 
-    <!-- Recent transactions -->
+    
     <div class="card">
       <div class="recent-header">
         <h4>Recent transactions</h4>

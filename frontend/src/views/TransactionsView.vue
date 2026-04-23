@@ -3,7 +3,12 @@ import { ref } from 'vue'
 import { useTransactionStore } from '@/stores/transactions'
 import type { Transaction } from '@/types/index'
 import { useCategoryStore } from '@/stores/categories'
+import { onMounted } from 'vue'
 
+onMounted(() => {
+  store.fetchTransactions()
+  categoryStore.fetchCategories()
+})
 const categoryStore = useCategoryStore()
 
 const store = useTransactionStore()
@@ -70,7 +75,7 @@ function formatDate(date: string) {
 
 <template>
   <div class="transactions">
-    <!-- Summary Row -->
+    
     <div class="summary-row">
       <div class="summary-card">
         <span class="summary-label">Balance</span>
@@ -86,13 +91,13 @@ function formatDate(date: string) {
       </div>
     </div>
 
-    <!-- Header -->
+    
     <div class="section-header">
       <h2>Transactions</h2>
       <button class="btn btn-primary" @click="openAdd">+ Add transaction</button>
     </div>
 
-    <!-- Table -->
+    
     <div class="card">
       <table class="table">
         <thead>
@@ -129,7 +134,7 @@ function formatDate(date: string) {
       </table>
     </div>
 
-    <!-- Modal Overlay -->
+    
     <div v-if="showForm" class="overlay" @click.self="closeForm">
       <div class="modal card">
         <h3>{{ editingTransaction ? 'Edit transaction' : 'New transaction' }}</h3>
