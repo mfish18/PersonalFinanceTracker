@@ -29,6 +29,10 @@ func GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+func HealthCheck(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
 func UpdateProfile(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
 

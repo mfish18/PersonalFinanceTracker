@@ -1,0 +1,1 @@
+GRANT ALL PRIVILEGES ON DATABASE finance_db TO fintrack_user;

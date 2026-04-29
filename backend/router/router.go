@@ -12,10 +12,10 @@ func Setup() *gin.Engine {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"},
+		AllowAllOrigins:  true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		AllowCredentials: true,
+		AllowCredentials: false,
 	}))
 
 	//public routes
@@ -27,6 +27,7 @@ func Setup() *gin.Engine {
 
 	//protected routes
 	api := r.Group("/api")
+	r.GET("/health", handlers.HealthCheck)
 	api.Use(middleware.AuthRequired())
 	{
 		api.GET("/transactions", handlers.GetTransactions)
