@@ -16,6 +16,6 @@ spec:
       containers:
         - name: frontend
           image: fintrack-frontend:latest
-          imagePullPolicy: Never
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
