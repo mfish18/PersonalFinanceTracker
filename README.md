@@ -25,7 +25,7 @@ A personal finance tracker built with Vue 3, Go, and PostgreSQL.
 | Auth (JWT) | Done |
 | Docker + Compose | Done |
 | CI/CD pipeline | Pending |
-| Kubernetes + ArgoCD | Pending |
+| Kubernetes + ArgoCD | Done |
 
 ## Getting Started
 
