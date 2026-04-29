@@ -13,7 +13,9 @@ import {
 import { useTransactionStore } from '@/stores/transactions'
 import { useCategoryStore } from '@/stores/categories'
 import { onMounted } from 'vue'
+import { useCurrency } from '@/composables/useCurrency'
 
+const { formatAmount, formatWithSign  } = useCurrency()
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
@@ -94,11 +96,6 @@ const barOptions = {
   },
 }
 
-function formatAmount(amount: number, type: string) {
-  const sign = type === 'income' ? '+' : '-'
-  return `${sign}$${amount.toFixed(2)}`
-}
-
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
 }
@@ -111,15 +108,15 @@ function formatDate(date: string) {
     <div class="summary-row">
       <div class="summary-card">
         <span class="summary-label">Balance</span>
-        <span class="summary-value">${{ store.balance.toFixed(2) }}</span>
+        <span class="summary-value">{{ formatAmount(store.balance) }}</span>
       </div>
       <div class="summary-card">
         <span class="summary-label">Total income</span>
-        <span class="summary-value text-income">${{ store.totalIncome.toFixed(2) }}</span>
+        <span class="summary-value text-income">{{ formatAmount(store.balance) }}</span>
       </div>
       <div class="summary-card">
         <span class="summary-label">Total expenses</span>
-        <span class="summary-value text-expense">${{ store.totalExpenses.toFixed(2) }}</span>
+        <span class="summary-value text-expense">{{ formatAmount(store.balance) }}</span>
       </div>
       <div class="summary-card">
         <span class="summary-label">Transactions</span>
@@ -166,7 +163,7 @@ function formatDate(date: string) {
             </td>
             <td class="text-muted">{{ formatDate(t.date) }}</td>
             <td :class="['amount', t.type === 'income' ? 'text-income' : 'text-expense']">
-              {{ formatAmount(t.amount, t.type) }}
+              {{ formatWithSign(t.amount, t.type) }}
             </td>
           </tr>
         </tbody>

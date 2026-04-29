@@ -15,7 +15,9 @@ import { useTransactionStore } from '@/stores/transactions'
 import { useCategoryStore } from '@/stores/categories'
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns'
 import { onMounted } from 'vue'
+import { useCurrency } from '@/composables/useCurrency'
 
+const { formatAmount } = useCurrency()
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend)
 
@@ -132,9 +134,6 @@ function exportCSV() {
   URL.revokeObjectURL(url)
 }
 
-function formatAmount(n: number) {
-  return `$${n.toFixed(2)}`
-}
 </script>
 
 <template>

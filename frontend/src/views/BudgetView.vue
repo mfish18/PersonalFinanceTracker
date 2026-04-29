@@ -5,6 +5,9 @@ import { useCategoryStore } from '@/stores/categories'
 import type { Budget } from '@/types/index'
 import { onMounted } from 'vue'
 import { useTransactionStore } from '@/stores/transactions'
+import { useCurrency } from '@/composables/useCurrency'
+
+const { formatAmount } = useCurrency()
 
 const transactionStore = useTransactionStore()
 const budgetStore = useBudgetStore()
@@ -78,10 +81,6 @@ const overallPercentage = computed(() => {
   if (totalBudgeted.value === 0) return 0
   return Math.min(Math.round((totalSpent.value / totalBudgeted.value) * 100), 100)
 })
-
-function formatAmount(n: number) {
-  return `$${n.toFixed(2)}`
-}
 
 function progressColor(percentage: number, overBudget: boolean) {
   if (overBudget) return 'var(--color-expense)'

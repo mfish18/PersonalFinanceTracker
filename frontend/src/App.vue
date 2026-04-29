@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import AppTopbar from '@/components/layout/AppTopbar.vue'
+import { useTheme } from '@/composables/useTheme'
+
+useTheme()
 </script>
 
 <template>

@@ -43,6 +43,10 @@ func Setup() *gin.Engine {
 		api.POST("/budgets", handlers.CreateBudget)
 		api.PUT("/budgets/:id", handlers.UpdateBudget)
 		api.DELETE("/budgets/:id", handlers.DeleteBudget)
+
+		api.GET("/user/profile", handlers.GetProfile)
+		api.PUT("/user/profile", handlers.UpdateProfile)
+		api.PUT("/user/preferences", handlers.UpdatePreferences)
 	}
 
 	return r

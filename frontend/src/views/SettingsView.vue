@@ -2,18 +2,38 @@
 import { ref, watch } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import type { UserSettings } from '@/types/index'
+import { useAuthStore } from '@/stores/auth'
 
 const store = useSettingsStore()
+const authStore = useAuthStore()
 
 const form = ref<UserSettings>(JSON.parse(JSON.stringify(store.settings)))
+
+const saveError = ref('')
 const saved = ref(false)
+const loading = ref(false)
+
 const activeSection = ref<'profile' | 'preferences' | 'notifications' | 'danger'>('profile')
 
-function save() {
-  store.updateSettings(form.value)
-  store.updateNotifications(form.value.notifications)
-  saved.value = true
-  setTimeout(() => { saved.value = false }, 2500)
+async function save() {
+  saveError.value = ''
+  loading.value = true
+  try {
+    if (activeSection.value === 'profile') {
+      await store.saveProfile(form.value.displayName, form.value.email)
+    } else if (activeSection.value === 'preferences') {
+      await store.savePreferences(form.value.currency, form.value.dateFormat)
+      store.updateSettings({ theme: form.value.theme })
+    } else if (activeSection.value === 'notifications') {
+      store.updateNotifications(form.value.notifications)
+    }
+    saved.value = true
+    setTimeout(() => { saved.value = false }, 2500)
+  } catch (e: any) {
+    saveError.value = e.response?.data?.error ?? 'Failed to save'
+  } finally {
+    loading.value = false
+  }
 }
 
 function reset() {
@@ -218,12 +238,15 @@ const sections = [
         </div>
 
         
-        <div v-if="activeSection !== 'danger'" class="save-bar">
+        <div class="save-bar">
           <transition name="fade">
             <span v-if="saved" class="saved-msg text-income text-sm">Changes saved.</span>
+            <span v-if="saveError" class="saved-msg text-expense text-sm">{{ saveError }}</span>
           </transition>
           <button class="btn" @click="reset">Reset</button>
-          <button class="btn btn-primary" @click="save">Save changes</button>
+          <button class="btn btn-primary" :disabled="loading" @click="save">
+            {{ loading ? 'Saving...' : 'Save changes' }}
+          </button>
         </div>
 
       </div>

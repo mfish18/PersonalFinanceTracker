@@ -4,6 +4,9 @@ import { useTransactionStore } from '@/stores/transactions'
 import type { Transaction } from '@/types/index'
 import { useCategoryStore } from '@/stores/categories'
 import { onMounted } from 'vue'
+import { useCurrency } from '@/composables/useCurrency'
+
+const { formatAmount } = useCurrency()
 
 onMounted(() => {
   store.fetchTransactions()
@@ -57,11 +60,6 @@ function submit() {
     store.addTransaction(form.value)
   }
   closeForm()
-}
-
-function formatAmount(amount: number, type: string) {
-  const sign = type === 'income' ? '+' : '-'
-  return `${sign}$${amount.toFixed(2)}`
 }
 
 function formatDate(date: string) {
@@ -123,7 +121,7 @@ function formatDate(date: string) {
               }}</span>
             </td>
             <td :class="['amount', t.type === 'income' ? 'text-income' : 'text-expense']">
-              {{ formatAmount(t.amount, t.type) }}
+              {{ t.type === 'income' ? '+' : '-' }}{{ formatAmount(t.amount) }}
             </td>
             <td class="row-actions">
               <button class="btn" @click="openEdit(t)">Edit</button>
