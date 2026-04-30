@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useTransactionStore } from '@/stores/transactions'
 import type { Transaction } from '@/types/index'
 import { useCategoryStore } from '@/stores/categories'
-import { onMounted } from 'vue'
 import { useCurrency } from '@/composables/useCurrency'
 
-const { formatAmount } = useCurrency()
+const { formatWithSign } = useCurrency()
 
 onMounted(() => {
   store.fetchTransactions()
@@ -18,6 +17,53 @@ const store = useTransactionStore()
 
 const showForm = ref(false)
 const editingTransaction = ref<Transaction | null>(null)
+
+const search = ref('')
+const filterCategory = ref('')
+const filterType = ref<'all' | 'income' | 'expense'>('all')
+const filterDateFrom = ref('')
+const filterDateTo = ref('')
+
+const filteredTransactions = computed(() => {
+  return store.transactions.filter(t => {
+    const matchesSearch = search.value === '' ||
+      t.description.toLowerCase().includes(search.value.toLowerCase()) ||
+      t.category.toLowerCase().includes(search.value.toLowerCase())
+
+    const matchesCategory = filterCategory.value === '' ||
+      t.category === filterCategory.value
+
+    const matchesType = filterType.value === 'all' ||
+      t.type === filterType.value
+
+    const matchesDateFrom = filterDateFrom.value === '' ||
+      t.date >= filterDateFrom.value
+
+    const matchesDateTo = filterDateTo.value === '' ||
+      t.date <= filterDateTo.value
+
+    return matchesSearch && matchesCategory && matchesType && matchesDateFrom && matchesDateTo
+  })
+})
+
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (search.value) count++
+  if (filterCategory.value) count++
+  if (filterType.value !== 'all') count++
+  if (filterDateFrom.value) count++
+  if (filterDateTo.value) count++
+  return count
+})
+
+function clearFilters() {
+  search.value = ''
+  filterCategory.value = ''
+  filterType.value = 'all'
+  filterDateFrom.value = ''
+  filterDateTo.value = ''
+}
+
 
 const empty: Omit<Transaction, 'id'> = {
   amount: 0,
@@ -73,7 +119,7 @@ function formatDate(date: string) {
 
 <template>
   <div class="transactions">
-    
+
     <div class="summary-row">
       <div class="summary-card">
         <span class="summary-label">Balance</span>
@@ -89,13 +135,48 @@ function formatDate(date: string) {
       </div>
     </div>
 
-    
     <div class="section-header">
       <h2>Transactions</h2>
       <button class="btn btn-primary" @click="openAdd">+ Add transaction</button>
     </div>
 
-    
+    <div class="filter-bar card">
+      <div class="filter-row">
+        <div class="filter-group search-group">
+          <input v-model="search" type="text" placeholder="Search transactions..." class="search-input" />
+        </div>
+
+        <div class="filter-group">
+          <select v-model="filterCategory">
+            <option value="">All categories</option>
+            <option v-for="c in categoryStore.categories" :key="c.id" :value="c.name">
+              {{ c.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <select v-model="filterType">
+            <option value="all">All types</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <input v-model="filterDateFrom" type="date" />
+        </div>
+
+        <div class="filter-group">
+          <input v-model="filterDateTo" type="date" />
+        </div>
+
+        <button v-if="activeFilterCount > 0" class="btn clear-btn" @click="clearFilters">
+          Clear ({{ activeFilterCount }})
+        </button>
+      </div>
+    </div>
+
     <div class="card">
       <table class="table">
         <thead>
@@ -109,19 +190,17 @@ function formatDate(date: string) {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="t in store.transactions" :key="t.id">
+          <tr v-if="filteredTransactions.length === 0">
+            <td colspan="6" class="empty-row">No transactions match your filters.</td>
+          </tr>
+          <tr v-for="t in filteredTransactions" :key="t.id">
             <td>{{ t.description }}</td>
-            <td>
-              <span class="category-pill">{{ t.category }}</span>
-            </td>
+            <td><span class="category-pill">{{ t.category }}</span></td>
             <td class="text-muted">{{ formatDate(t.date) }}</td>
-            <td>
-              <span :class="['badge', t.type === 'income' ? 'badge-income' : 'badge-expense']">{{
-                t.type
-              }}</span>
+            <td><span :class="['badge', t.type === 'income' ? 'badge-income' : 'badge-expense']">{{ t.type }}</span>
             </td>
             <td :class="['amount', t.type === 'income' ? 'text-income' : 'text-expense']">
-              {{ t.type === 'income' ? '+' : '-' }}{{ formatAmount(t.amount) }}
+              {{ formatWithSign(t.amount, t.type) }}
             </td>
             <td class="row-actions">
               <button class="btn" @click="openEdit(t)">Edit</button>
@@ -132,7 +211,7 @@ function formatDate(date: string) {
       </table>
     </div>
 
-    
+
     <div v-if="showForm" class="overlay" @click.self="closeForm">
       <div class="modal card">
         <h3>{{ editingTransaction ? 'Edit transaction' : 'New transaction' }}</h3>
@@ -151,11 +230,7 @@ function formatDate(date: string) {
           <label>Category</label>
           <select v-model="form.category">
             <option value="" disabled>Select a category</option>
-            <option
-              v-for="c in categoryStore.getCategoriesForType(form.type)"
-              :key="c.id"
-              :value="c.name"
-            >
+            <option v-for="c in categoryStore.getCategoriesForType(form.type)" :key="c.id" :value="c.name">
               {{ c.name }}
             </option>
           </select>
@@ -197,6 +272,7 @@ function formatDate(date: string) {
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
 }
+
 .summary-card {
   background: var(--color-bg-subtle);
   border-radius: var(--radius-lg);
@@ -205,10 +281,12 @@ function formatDate(date: string) {
   flex-direction: column;
   gap: var(--space-1);
 }
+
 .summary-label {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
+
 .summary-value {
   font-size: var(--text-2xl);
   font-weight: 600;
@@ -220,11 +298,51 @@ function formatDate(date: string) {
   justify-content: space-between;
 }
 
+.filter-bar {
+  padding: var(--space-4);
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+}
+
+.search-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-input {
+  width: 100%;
+}
+
+.clear-btn {
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.empty-row {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-8) !important;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--text-sm);
 }
+
+
 .table th {
   text-align: left;
   font-size: var(--text-xs);
@@ -235,15 +353,18 @@ function formatDate(date: string) {
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-border);
 }
+
 .table td {
   padding: var(--space-3);
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-primary);
   vertical-align: middle;
 }
+
 .table tbody tr:last-child td {
   border-bottom: none;
 }
+
 .table tbody tr:hover td {
   background: var(--color-bg-subtle);
 }
@@ -254,11 +375,13 @@ function formatDate(date: string) {
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
 }
+
 .amount {
   text-align: right;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
+
 .row-actions {
   display: flex;
   gap: var(--space-2);
@@ -274,6 +397,7 @@ function formatDate(date: string) {
   justify-content: center;
   z-index: 50;
 }
+
 .modal {
   width: 100%;
   max-width: 420px;
@@ -281,11 +405,13 @@ function formatDate(date: string) {
   flex-direction: column;
   gap: var(--space-4);
 }
+
 .form-group {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
