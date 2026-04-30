@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useTransactionStore } from '@/stores/transactions'
 import type { Transaction } from '@/types/index'
 import { useCategoryStore } from '@/stores/categories'
 import { useCurrency } from '@/composables/useCurrency'
 
-const { formatWithSign } = useCurrency()
+const { formatAmount, formatWithSign } = useCurrency()
 
 onMounted(() => {
   store.fetchTransactions()
@@ -75,6 +75,32 @@ const empty: Omit<Transaction, 'id'> = {
 
 const form = ref<Omit<Transaction, 'id'>>({ ...empty })
 
+const currentPage = ref(1)
+const pageSize = 10
+
+const paginatedTransactions = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  return filteredTransactions.value.slice(start, end)
+})
+
+const totalPages = computed(() =>
+  Math.ceil(filteredTransactions.value.length / pageSize)
+)
+
+const pageStart = computed(() =>
+  filteredTransactions.value.length === 0 ? 0 : (currentPage.value - 1) * pageSize + 1
+)
+
+const pageEnd = computed(() =>
+  Math.min(currentPage.value * pageSize, filteredTransactions.value.length)
+)
+
+// Reset to page 1 when filters change
+watch([search, filterCategory, filterType, filterDateFrom, filterDateTo], () => {
+  currentPage.value = 1
+})
+
 function openAdd() {
   editingTransaction.value = null
   form.value = { ...empty }
@@ -123,15 +149,15 @@ function formatDate(date: string) {
     <div class="summary-row">
       <div class="summary-card">
         <span class="summary-label">Balance</span>
-        <span class="summary-value">${{ store.balance.toFixed(2) }}</span>
+        <span class="summary-value">{{ formatAmount(store.balance) }}</span>
       </div>
       <div class="summary-card">
         <span class="summary-label">Income</span>
-        <span class="summary-value text-income">${{ store.totalIncome.toFixed(2) }}</span>
+        <span class="summary-value text-income">{{ formatAmount(store.totalIncome) }}</span>
       </div>
       <div class="summary-card">
         <span class="summary-label">Expenses</span>
-        <span class="summary-value text-expense">${{ store.totalExpenses.toFixed(2) }}</span>
+        <span class="summary-value text-expense">{{ formatAmount(store.totalExpenses) }}</span>
       </div>
     </div>
 
@@ -193,7 +219,7 @@ function formatDate(date: string) {
           <tr v-if="filteredTransactions.length === 0">
             <td colspan="6" class="empty-row">No transactions match your filters.</td>
           </tr>
-          <tr v-for="t in filteredTransactions" :key="t.id">
+          <tr v-for="t in paginatedTransactions" :key="t.id">
             <td>{{ t.description }}</td>
             <td><span class="category-pill">{{ t.category }}</span></td>
             <td class="text-muted">{{ formatDate(t.date) }}</td>
@@ -209,6 +235,22 @@ function formatDate(date: string) {
           </tr>
         </tbody>
       </table>
+      <div v-if="filteredTransactions.length > 0" class="pagination">
+        <span class="pagination-info text-muted text-sm">
+          Showing {{ pageStart }}–{{ pageEnd }} of {{ filteredTransactions.length }} transactions
+        </span>
+        <div class="pagination-controls">
+          <button class="btn" :disabled="currentPage === 1" @click="currentPage--">
+            Previous
+          </button>
+          <span class="page-indicator text-sm">
+            Page {{ currentPage }} of {{ totalPages }}
+          </span>
+          <button class="btn" :disabled="currentPage >= totalPages" @click="currentPage++">
+            Next
+          </button>
+        </div>
+      </div>
     </div>
 
 
@@ -417,5 +459,31 @@ function formatDate(date: string) {
   justify-content: flex-end;
   gap: var(--space-2);
   margin-top: var(--space-2);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-3);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.page-indicator {
+  color: var(--color-text-secondary);
+  min-width: 80px;
+  text-align: center;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 </style>

@@ -112,11 +112,11 @@ function formatDate(date: string) {
       </div>
       <div class="summary-card">
         <span class="summary-label">Total income</span>
-        <span class="summary-value text-income">{{ formatAmount(store.balance) }}</span>
+        <span class="summary-value text-income">{{ formatAmount(store.totalIncome) }}</span>
       </div>
       <div class="summary-card">
         <span class="summary-label">Total expenses</span>
-        <span class="summary-value text-expense">{{ formatAmount(store.balance) }}</span>
+        <span class="summary-value text-expense">{{ formatAmount(store.totalExpenses) }}</span>
       </div>
       <div class="summary-card">
         <span class="summary-label">Transactions</span>

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import type { UserSettings } from '@/types/index'
-import { useAuthStore } from '@/stores/auth'
+// import { useAuthStore } from '@/stores/auth'
 
 const store = useSettingsStore()
-const authStore = useAuthStore()
+// const authStore = useAuthStore()
 
 const form = ref<UserSettings>(JSON.parse(JSON.stringify(store.settings)))
 
@@ -66,22 +66,19 @@ const sections = [
 
     <div class="settings-layout">
 
-      
+
       <aside class="settings-nav card">
-        <button
-          v-for="s in sections"
-          :key="s.key"
+        <button v-for="s in sections" :key="s.key"
           :class="['nav-item', { active: activeSection === s.key, danger: s.key === 'danger' }]"
-          @click="activeSection = s.key"
-        >
+          @click="activeSection = s.key">
           {{ s.label }}
         </button>
       </aside>
 
-      
+
       <div class="settings-content">
 
-        
+
         <div v-if="activeSection === 'profile'" class="section card">
           <div class="section-title">
             <h3>Profile</h3>
@@ -110,7 +107,7 @@ const sections = [
           </div>
         </div>
 
-        
+
         <div v-if="activeSection === 'preferences'" class="section card">
           <div class="section-title">
             <h3>Preferences</h3>
@@ -138,17 +135,8 @@ const sections = [
           <div class="form-group">
             <label>Theme</label>
             <div class="theme-options">
-              <label
-                v-for="t in themes"
-                :key="t.value"
-                :class="['theme-option', { active: form.theme === t.value }]"
-              >
-                <input
-                  type="radio"
-                  :value="t.value"
-                  v-model="form.theme"
-                  style="display: none;"
-                />
+              <label v-for="t in themes" :key="t.value" :class="['theme-option', { active: form.theme === t.value }]">
+                <input type="radio" :value="t.value" v-model="form.theme" style="display: none;" />
                 <span class="theme-preview" :data-theme="t.value"></span>
                 <span class="text-sm">{{ t.label }}</span>
               </label>
@@ -156,7 +144,7 @@ const sections = [
           </div>
         </div>
 
-        
+
         <div v-if="activeSection === 'notifications'" class="section card">
           <div class="section-title">
             <h3>Notifications</h3>
@@ -169,10 +157,8 @@ const sections = [
                 <span class="toggle-label">Budget alerts</span>
                 <span class="toggle-desc">Get notified when you're approaching or over a budget limit.</span>
               </div>
-              <button
-                :class="['toggle', { on: form.notifications.budgetAlerts }]"
-                @click="form.notifications.budgetAlerts = !form.notifications.budgetAlerts"
-              >
+              <button :class="['toggle', { on: form.notifications.budgetAlerts }]"
+                @click="form.notifications.budgetAlerts = !form.notifications.budgetAlerts">
                 <span class="toggle-thumb"></span>
               </button>
             </div>
@@ -182,10 +168,8 @@ const sections = [
                 <span class="toggle-label">Weekly report</span>
                 <span class="toggle-desc">Receive a weekly summary of your spending.</span>
               </div>
-              <button
-                :class="['toggle', { on: form.notifications.weeklyReport }]"
-                @click="form.notifications.weeklyReport = !form.notifications.weeklyReport"
-              >
+              <button :class="['toggle', { on: form.notifications.weeklyReport }]"
+                @click="form.notifications.weeklyReport = !form.notifications.weeklyReport">
                 <span class="toggle-thumb"></span>
               </button>
             </div>
@@ -195,17 +179,15 @@ const sections = [
                 <span class="toggle-label">Monthly report</span>
                 <span class="toggle-desc">Receive a full monthly breakdown at the end of each month.</span>
               </div>
-              <button
-                :class="['toggle', { on: form.notifications.monthlyReport }]"
-                @click="form.notifications.monthlyReport = !form.notifications.monthlyReport"
-              >
+              <button :class="['toggle', { on: form.notifications.monthlyReport }]"
+                @click="form.notifications.monthlyReport = !form.notifications.monthlyReport">
                 <span class="toggle-thumb"></span>
               </button>
             </div>
           </div>
         </div>
 
-        
+
         <div v-if="activeSection === 'danger'" class="section card danger-card">
           <div class="section-title">
             <h3 class="text-expense">Danger zone</h3>
@@ -237,11 +219,11 @@ const sections = [
           </div>
         </div>
 
-        
+
         <div class="save-bar">
           <transition name="fade">
-            <span v-if="saved" class="saved-msg text-income text-sm">Changes saved.</span>
-            <span v-if="saveError" class="saved-msg text-expense text-sm">{{ saveError }}</span>
+            <span v-if="saved" key="saved" class="saved-msg text-income text-sm">Changes saved.</span>
+            <span v-else-if="saveError" key="error" class="saved-msg text-expense text-sm">{{ saveError }}</span>
           </transition>
           <button class="btn" @click="reset">Reset</button>
           <button class="btn btn-primary" :disabled="loading" @click="save">
@@ -255,9 +237,17 @@ const sections = [
 </template>
 
 <style scoped>
-.settings { display: flex; flex-direction: column; gap: var(--space-6); }
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
 
-.settings-header p { color: var(--color-text-muted); font-size: var(--text-sm); margin-top: var(--space-1); }
+.settings-header p {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+}
 
 .settings-layout {
   display: grid;
@@ -272,6 +262,7 @@ const sections = [
   gap: var(--space-1);
   padding: var(--space-3);
 }
+
 .nav-item {
   text-align: left;
   padding: var(--space-2) var(--space-3);
@@ -282,92 +273,250 @@ const sections = [
   color: var(--color-text-secondary);
   cursor: pointer;
 }
-.nav-item:hover { background: var(--color-bg-subtle); }
-.nav-item.active { background: var(--color-bg-muted); color: var(--color-text-primary); font-weight: 500; }
-.nav-item.danger { color: var(--color-expense); }
-.nav-item.danger:hover { background: var(--color-expense-bg); }
-.nav-item.danger.active { background: var(--color-expense-bg); }
 
-.settings-content { display: flex; flex-direction: column; gap: var(--space-4); }
+.nav-item:hover {
+  background: var(--color-bg-subtle);
+}
 
-.section { display: flex; flex-direction: column; gap: var(--space-5); }
-.section-title { display: flex; flex-direction: column; gap: var(--space-1); border-bottom: 1px solid var(--color-border); padding-bottom: var(--space-4); }
-.section-title p { font-size: var(--text-sm); color: var(--color-text-muted); }
+.nav-item.active {
+  background: var(--color-bg-muted);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.nav-item.danger {
+  color: var(--color-expense);
+}
+
+.nav-item.danger:hover {
+  background: var(--color-expense-bg);
+}
+
+.nav-item.danger.active {
+  background: var(--color-expense-bg);
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.section-title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-4);
+}
+
+.section-title p {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
 
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
 }
-.form-group { display: flex; flex-direction: column; gap: var(--space-1); }
-.hint { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px; }
 
-.avatar-row { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); background: var(--color-bg-subtle); border-radius: var(--radius-lg); }
-.avatar-large {
-  width: 52px; height: 52px; border-radius: 50%;
-  background: var(--color-accent-bg); color: var(--color-accent);
-  display: flex; align-items: center; justify-content: center;
-  font-size: var(--text-lg); font-weight: 600; flex-shrink: 0;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
-.avatar-name { font-weight: 500; font-size: var(--text-base); }
 
-.theme-options { display: flex; gap: var(--space-3); margin-top: var(--space-2); }
+.hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.avatar-large {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.avatar-name {
+  font-weight: 500;
+  font-size: var(--text-base);
+}
+
+.theme-options {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
 .theme-option {
-  display: flex; flex-direction: column; align-items: center; gap: var(--space-2);
-  padding: var(--space-3); border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border); cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
   transition: border-color 0.15s;
   min-width: 80px;
 }
-.theme-option.active { border-color: var(--color-accent); }
+
+.theme-option.active {
+  border-color: var(--color-accent);
+}
+
 .theme-preview {
-  width: 48px; height: 32px; border-radius: var(--radius-md);
+  width: 48px;
+  height: 32px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
 }
-.theme-preview[data-theme="light"] { background: #ffffff; }
-.theme-preview[data-theme="dark"] { background: #1a1a1a; }
-.theme-preview[data-theme="system"] { background: linear-gradient(135deg, #ffffff 50%, #1a1a1a 50%); }
 
-.toggle-list { display: flex; flex-direction: column; gap: 0; }
+.theme-preview[data-theme="light"] {
+  background: #ffffff;
+}
+
+.theme-preview[data-theme="dark"] {
+  background: #1a1a1a;
+}
+
+.theme-preview[data-theme="system"] {
+  background: linear-gradient(135deg, #ffffff 50%, #1a1a1a 50%);
+}
+
+.toggle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .toggle-row {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-6); padding: var(--space-4) 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: var(--space-4) 0;
   border-bottom: 1px solid var(--color-border);
 }
-.toggle-row:last-child { border-bottom: none; }
-.toggle-info { display: flex; flex-direction: column; gap: 2px; }
-.toggle-label { font-size: var(--text-sm); font-weight: 500; }
-.toggle-desc { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+.toggle-row:last-child {
+  border-bottom: none;
+}
+
+.toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toggle-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.toggle-desc {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
 
 .toggle {
-  width: 40px; height: 22px; border-radius: var(--radius-full);
-  background: var(--color-bg-muted); border: 1px solid var(--color-border-strong);
-  position: relative; cursor: pointer; flex-shrink: 0;
+  width: 40px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border-strong);
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
   transition: background 0.2s, border-color 0.2s;
 }
-.toggle.on { background: var(--color-income); border-color: var(--color-income); }
-.toggle-thumb {
-  position: absolute; top: 2px; left: 2px;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: #fff; transition: transform 0.2s;
-}
-.toggle.on .toggle-thumb { transform: translateX(18px); }
 
-.danger-card { border-color: var(--color-expense-bg); }
+.toggle.on {
+  background: var(--color-income);
+  border-color: var(--color-income);
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.toggle.on .toggle-thumb {
+  transform: translateX(18px);
+}
+
+.danger-card {
+  border-color: var(--color-expense-bg);
+}
+
 .danger-row {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--space-6); padding: var(--space-4) 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: var(--space-4) 0;
   border-bottom: 1px solid var(--color-border);
 }
-.danger-row:last-child { border-bottom: none; }
-.danger-label { font-size: var(--text-sm); font-weight: 500; margin-bottom: 2px; }
+
+.danger-row:last-child {
+  border-bottom: none;
+}
+
+.danger-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
 
 .save-bar {
-  display: flex; align-items: center; justify-content: flex-end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: var(--space-3);
 }
-.saved-msg { margin-right: auto; }
 
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.saved-msg {
+  margin-right: auto;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>
